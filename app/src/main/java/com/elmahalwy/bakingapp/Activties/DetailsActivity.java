@@ -1,6 +1,9 @@
 package com.elmahalwy.bakingapp.Activties;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.CardView;
@@ -8,6 +11,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,15 +20,17 @@ import com.androidnetworking.AndroidNetworking;
 import com.androidnetworking.common.Priority;
 import com.androidnetworking.error.ANError;
 import com.androidnetworking.interfaces.JSONArrayRequestListener;
-import com.androidnetworking.interfaces.JSONObjectRequestListener;
-import com.elmahalwy.bakingapp.Adapters.DetailsAdapter;
-import com.elmahalwy.bakingapp.Adapters.MainAdapter;
-import com.elmahalwy.bakingapp.Models.StepsModel;
+import com.elmahalwy.bakingapp.Frgments.IngredientDetailsFragment;
+import com.elmahalwy.bakingapp.Frgments.IngredientFragment;
+import com.elmahalwy.bakingapp.Frgments.StepDetailsFragment;
+import com.elmahalwy.bakingapp.Frgments.StepsFragment;
+import com.elmahalwy.bakingapp.Models.Ingredients;
+import com.elmahalwy.bakingapp.Models.Steps;
 import com.elmahalwy.bakingapp.R;
+import com.elmahalwy.bakingapp.Utils.Constants;
 import com.elmahalwy.bakingapp.Utils.CustomLoadingDialog;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -32,107 +38,141 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
-public class DetailsActivity extends AppCompatActivity {
-    @BindView(R.id.card_view)
-    CardView card_view;
-    RecyclerView items_recycler;
-    List<StepsModel> steps_list;
-    DetailsAdapter detailsAdapter;
-    LinearLayoutManager linearLayoutManager;
-    CustomLoadingDialog customLoadingDialog;
+public class DetailsActivity extends AppCompatActivity
+        implements IngredientFragment.OnIngredientClickListener, StepsFragment.OnStepClickListener {
+
+
+    @BindView(R.id.recipe_ingredient_container)
+    FrameLayout mRecipeIngredientsFrame;
+    @BindView(R.id.recipe_steps_container)
+    FrameLayout mRecipeStepsFrame;
     @BindView(R.id.tv_toolbar_title)
     TextView tv_toolbar_title;
+    ArrayList<Steps> steps;
+    ArrayList<Ingredients> ingredients;
+    IngredientFragment ingredientFragment;
+    StepsFragment stepsFragment;
+    IngredientDetailsFragment ingredientDetailsFragment;
+    StepDetailsFragment stepDetailsFragment;
+    FragmentManager manager;
+    public static String title;
     boolean twoPaneMode;
+    SharedPreferences preferences;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_details);
         ButterKnife.bind(this);
-        customLoadingDialog = new CustomLoadingDialog(this, R.style.DialogSlideAnim);
-        InitUi();
-        InitEventDriven();
-        get_steps();
+
+        preferences = getSharedPreferences(Constants.INGREDIENTS, MODE_PRIVATE);
+        initialFragments();
+        Intent intent = this.getIntent();
+
+        if (intent != null) {
+            steps = intent.getParcelableArrayListExtra(Constants.STEPS);
+            ingredients = intent.getParcelableArrayListExtra(Constants.INGREDIENTS);
+            stepsFragment.setSteps(steps);
+            ingredientFragment.setIngredients(ingredients);
+            title = intent.getStringExtra(Constants.RECIPE);
+        }
+        if (savedInstanceState != null) {
+            steps = savedInstanceState.getParcelableArrayList(Constants.STEPS);
+            ingredients = savedInstanceState.getParcelableArrayList(Constants.INGREDIENTS);
+            stepsFragment.setSteps(steps);
+            ingredientFragment.setIngredients(ingredients);
+            title = savedInstanceState.getString(Constants.RECIPE);
+        }
+        if (findViewById(R.id.details_container) != null) {
+            twoPaneMode = true;
+        }
+        tv_toolbar_title.setText(title);
+        prefCreator(ingredients);
+
     }
 
-    void InitUi() {
-        tv_toolbar_title.setText("Recipes");
-        steps_list = new ArrayList<>();
-        items_recycler = (RecyclerView) findViewById(R.id.items_recycler);
-        linearLayoutManager = new LinearLayoutManager(this, LinearLayout.VERTICAL, false);
-        detailsAdapter = new DetailsAdapter(steps_list, getApplicationContext());
-        items_recycler.setLayoutManager(linearLayoutManager);
+
+    private void initialFragments() {
+        ingredientFragment = new IngredientFragment();
+        stepsFragment = new StepsFragment();
+
+        ingredientDetailsFragment = new IngredientDetailsFragment();
+        stepDetailsFragment = new StepDetailsFragment();
+        manager = getSupportFragmentManager();
+        FragmentTransaction transaction = manager.beginTransaction();
+        transaction.add(R.id.recipe_ingredient_container, ingredientFragment, "ingredientFragment")
+                .add(R.id.recipe_steps_container, stepsFragment, "stepsFragment")
+                .commit();
     }
 
-    void InitEventDriven() {
-        card_view.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), IngredientActivity.class);
-                intent.putExtra("type", getIntent().getStringExtra("type"));
-                intent.putExtra("title", tv_toolbar_title.getText().toString());
+    @Override
+    public void onIngredientClicked(ArrayList<Ingredients> ingredients) {
+        if (twoPaneMode) {
+            ingredientDetailsFragment.setIngredients(ingredients);
+            manager.beginTransaction().replace(R.id.details_container, ingredientDetailsFragment)
+                    .commit();
+        } else {
+            if (ingredientDetailsFragment != null) {
+                ingredientDetailsFragment.setIngredients(ingredients);
+                manager.beginTransaction().replace(R.id.recipe_ingredient_container, ingredientDetailsFragment)
+                        .addToBackStack("ingredientFragment")
+                        .commit();
+            }
+        }
+    }
+
+
+    @Override
+    public void onStepClicked(String description, String video, String thumbnail) {
+        if (stepDetailsFragment != null) {
+            if (twoPaneMode) {
+                stepDetailsFragment.setVideo(video);
+                stepDetailsFragment.setDescription(description);
+                manager.beginTransaction().replace(R.id.details_container, stepDetailsFragment, "stepDetailsFragment")
+                        .detach(stepDetailsFragment)
+                        .attach(stepDetailsFragment)
+                        .commit();
+            } else {
+                Intent intent = new Intent(DetailsActivity.this, StepsActivity.class);
+                intent.putExtra(Constants.VIDEO, video);
+                intent.putExtra(Constants.DESCRIPTION, description);
+                intent.putExtra(Constants.THUMBNAIL, thumbnail);
                 startActivity(intent);
             }
-        });
+        }
     }
 
-    void get_steps() {
-        customLoadingDialog.show();
-        String stps_url = "https://d17h27t6h515a5.cloudfront.net/topher/2017/May/59121517_baking/baking.json";
-        AndroidNetworking.get(stps_url)
-                .setPriority(Priority.MEDIUM)
-                .build()
-                .getAsJSONArray(new JSONArrayRequestListener() {
-                    @Override
-                    public void onResponse(JSONArray response) {
-                        try {
-                            customLoadingDialog.dismiss();
-                            Log.e("response", response.toString());
-                            JSONObject jsonObject = response.getJSONObject(Integer.parseInt(getIntent().getStringExtra("type")));
-                            JSONArray steps_array = jsonObject.getJSONArray("steps");
-                            for (int i = 0; i < steps_array.length(); i++) {
-                                JSONObject current_object = steps_array.getJSONObject(i);
-                                StepsModel stepsModel = new StepsModel();
-                                stepsModel.setId(current_object.getString("id"));
-                                stepsModel.setShortDescription(current_object.getString("shortDescription"));
-                                stepsModel.setDescription(current_object.getString("description"));
-                                stepsModel.setVideoURL(current_object.getString("videoURL"));
-                                steps_list.add(stepsModel);
-                                Log.e("stepsModel", steps_list.toString());
-                            }
-                            items_recycler.setAdapter(detailsAdapter);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList(Constants.STEPS, steps);
+        outState.putParcelableArrayList(Constants.INGREDIENTS, ingredients);
+        outState.putString(Constants.RECIPE, title);
+    }
 
-                    }
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        savedInstanceState.getParcelableArrayList(Constants.STEPS);
+        savedInstanceState.getParcelableArrayList(Constants.INGREDIENTS);
+        savedInstanceState.getString(Constants.RECIPE);
+    }
 
-                    @Override
-                    public void onError(ANError anError) {
-                        customLoadingDialog.dismiss();
-                        if (anError.getErrorCode() != 0) {
-                            // received error from server
-                            // error.getErrorCode() - the error code from server
-                            // error.getErrorBody() - the error body from server
-                            // error.getErrorDetail() - just an error detail
-                            Log.e("onError errorCode : ", String.valueOf(anError.getErrorCode()));
-                            Log.e("onError errorBody : ", anError.getErrorBody());
-                            if (anError.getErrorCode() == 400) {
-                                Toast.makeText(DetailsActivity.this, "حدث خطأ ما...", Toast.LENGTH_SHORT).show();
-                            }
-                            if (anError.getErrorCode() == 500) {
-                                Toast.makeText(DetailsActivity.this, "خطأ فى الاتصال بالسيرفر...", Toast.LENGTH_SHORT).show();
-                            }
-                            // get parsed error object (If ApiError is your class)
 
-                        } else {
-                            // error.getErrorDetail() : connectionError, parseError, requestCancelledError
-                            Log.e("onError errorDetail : ", anError.getErrorDetail());
-                            if (anError.getErrorDetail().equals("connectionError")) {
-                                Toast.makeText(DetailsActivity.this, "خطأ فى الاتصال بالانترنت...", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    }
-                });
+    private void prefCreator(ArrayList<Ingredients> ingredients) {
+        if (ingredients != null) {
+            for (int i = 0; i < ingredients.size(); i++) {
+                preferences.edit().putString(Constants.INGREDIENT + " " + i, ingredients.get(i).getIngredient()).apply();
+                preferences.edit().putString(Constants.MEASURE + " " + i, ingredients.get(i).getMeasure()).apply();
+                preferences.edit().putFloat(Constants.QUANTITY + " " + i, ingredients.get(i).getQuantity()).apply();
+                Log.e("size", ingredients.get(i).getIngredient() + " **-** " + ingredients.get(i).getQuantity() + " **-** " + ingredients.get(i).getMeasure());
+
+            }
+            preferences.edit().putInt(Constants.INGREDIENTS_SIZE, ingredients.size()).apply();
+            Log.e("size", ingredients.size() + " **-** ");
+
+        }
     }
 }

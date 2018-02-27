@@ -32,7 +32,7 @@ public class SimpleWidgetProvider extends AppWidgetProvider {
 
             RemoteViews remoteViews = new RemoteViews(context.getPackageName(),
                     R.layout.widget_layout);
-            remoteViews.setTextViewText(R.id.app_name,StepsActivity.descrption );
+//            remoteViews.setTextViewText(R.id.app_name,StepsActivity.descrption );
 
             Intent intent = new Intent(context, SimpleWidgetProvider.class);
             intent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);

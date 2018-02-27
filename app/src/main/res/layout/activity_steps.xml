@@ -6,7 +6,9 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context="com.elmahalwy.bakingapp.Activties.StepsActivity">
-<include layout="@layout/toolbar_steps_layout"/>
+
+    <include layout="@layout/toolbar_steps_layout" />
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -21,30 +23,38 @@
                 android:layout_height="wrap_content"
                 android:layout_centerHorizontal="true"
                 android:layout_centerVertical="true"
+                android:text=""
                 android:textColor="#ED5734"
                 android:textSize="16sp"
-                android:text=""
                 android:visibility="gone" />
 
             <com.google.android.exoplayer2.ui.SimpleExoPlayerView
                 android:id="@+id/video_steps"
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
-                android:layout_margin="5dp"
-                />
+                android:layout_margin="5dp" />
 
             <TextView
-                    android:id="@+id/tv_step_description"
+                android:id="@+id/tv_step_description"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/video_steps"
                 android:layout_centerHorizontal="true"
                 android:layout_margin="5dp"
-                android:text=""
                 android:layout_marginBottom="20dp"
                 android:layout_marginTop="30dp"
+                android:text=""
                 android:textColor="#ED5734"
                 android:textSize="16sp" />
+
+            <ImageView
+                android:id="@+id/iv_thumb"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_below="@+id/tv_step_description"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="10dp"
+                />
         </RelativeLayout>
 
     </ScrollView>

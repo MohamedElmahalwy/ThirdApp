@@ -4,7 +4,7 @@ android {
     compileSdkVersion 26
     defaultConfig {
         applicationId "com.elmahalwy.bakingapp"
-        minSdkVersion 15
+        minSdkVersion 16
         targetSdkVersion 26
         versionCode 1
         versionName "1.0"
@@ -44,4 +44,8 @@ dependencies {
 
     compile 'com.android.support:recyclerview-v7:25.3.1'
     compile 'com.amitshekhar.android:android-networking:1.0.0'
+    compile 'com.squareup.retrofit2:retrofit:2.3.0'
+    compile 'com.squareup.retrofit2:converter-gson:2.3.0'
+    compile 'com.chootdev:recycleclick:1.0.0'
+
 }
