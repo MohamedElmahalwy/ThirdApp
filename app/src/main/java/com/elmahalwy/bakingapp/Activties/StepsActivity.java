@@ -51,13 +51,13 @@ public class StepsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_steps);
         ButterKnife.bind(this);
         position = C.TIME_UNSET;
-        Log.e("ppsi onCreate", "**" + position);
+
         if (savedInstanceState != null) {
             description = savedInstanceState.getString(Constants.DESCRIPTION);
             video = savedInstanceState.getString(Constants.VIDEO);
             position = savedInstanceState.getLong(Constants.VIDEO_STATE);
             thumbnail = savedInstanceState.getString(Constants.THUMBNAIL);
-            Log.e("ppsi saveinstance", "**" + position);
+
 
         } else {
             Intent intent = this.getIntent();
@@ -104,7 +104,7 @@ void InitUI(){
                     , null, null);
             if (position != C.TIME_UNSET)
                 Player.seekTo(position);
-            Log.e("ppsi setUp", "**" + position);
+
 
             Player.prepare(mediaSource);
             Player.setPlayWhenReady(true);
@@ -113,7 +113,7 @@ void InitUI(){
 
     void stopPlayer() {
         if (Player != null) {
-
+            position = Player.getCurrentPosition();
             Player.stop();
             Player.release();
             Player = null;
