@@ -42,6 +42,7 @@ public class StepDetailsFragment extends Fragment {
 
     private SimpleExoPlayer mPlayer;
     private String description, video;
+
     public void setDescription(String description) {
         this.description = description;
     }
@@ -79,7 +80,12 @@ public class StepDetailsFragment extends Fragment {
                 mStepVideo.setVisibility(View.GONE);
                 setupMediaPlayer(Uri.parse(video));
             }
+        } else {
+            mStepVideo.setText("No Video");
+            mStepVideo.setVisibility(View.VISIBLE);
+            mVideoPlayer.setVisibility(View.GONE);
         }
+
     }
 
     private void setupMediaPlayer(Uri uri) {
@@ -105,9 +111,10 @@ public class StepDetailsFragment extends Fragment {
         }
     }
 
+
     @Override
-    public void onStop() {
-        super.onStop();
+    public void onPause() {
+        super.onPause();
         stopPlayer();
     }
 
@@ -116,5 +123,18 @@ public class StepDetailsFragment extends Fragment {
         super.onSaveInstanceState(outState);
         outState.putString(Constants.VIDEO, video);
         outState.putString(Constants.DESCRIPTION, description);
+    }
+
+    @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+        try {
+            savedInstanceState.getLong(Constants.VIDEO_STATE);
+            savedInstanceState.getString(Constants.VIDEO);
+            savedInstanceState.getString(Constants.THUMBNAIL);
+            savedInstanceState.getString(Constants.DESCRIPTION);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

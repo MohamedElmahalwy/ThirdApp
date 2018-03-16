@@ -12,6 +12,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,6 +30,7 @@ import com.elmahalwy.bakingapp.Models.Steps;
 import com.elmahalwy.bakingapp.R;
 import com.elmahalwy.bakingapp.Utils.Constants;
 import com.elmahalwy.bakingapp.Utils.CustomLoadingDialog;
+import com.elmahalwy.bakingapp.Widget.IngredientDetailsListService;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -50,6 +52,10 @@ public class DetailsActivity extends AppCompatActivity
     FrameLayout mRecipeStepsFrame;
     @BindView(R.id.tv_toolbar_title)
     TextView tv_toolbar_title;
+    @BindView(R.id.tv_add_widget)
+    TextView tv_add_widget;
+    @BindView(R.id.iv_back)
+    ImageView iv_back;
     ArrayList<Steps> steps;
     ArrayList<Ingredients> ingredients;
     IngredientFragment ingredientFragment;
@@ -58,6 +64,8 @@ public class DetailsActivity extends AppCompatActivity
     StepDetailsFragment stepDetailsFragment;
     FragmentManager manager;
     public static String title;
+    public static String INGREDIENTS;
+
     boolean twoPaneMode;
     SharedPreferences preferences;
 
@@ -89,7 +97,22 @@ public class DetailsActivity extends AppCompatActivity
             twoPaneMode = true;
         }
         tv_toolbar_title.setText(title);
-        prefCreator(ingredients);
+        iv_back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
+        tv_add_widget.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (ingredients != null) {
+                    if (IngredientDetailsListService.startActionChangeIngredientList(DetailsActivity.this)) {
+                        Toast.makeText(DetailsActivity.this, "" + title + "'s Recipe Added", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        });
 
     }
 
@@ -161,18 +184,14 @@ public class DetailsActivity extends AppCompatActivity
     }
 
 
-    private void prefCreator(ArrayList<Ingredients> ingredients) {
-        if (ingredients != null) {
-            for (int i = 0; i < ingredients.size(); i++) {
-                preferences.edit().putString(Constants.INGREDIENT + " " + i, ingredients.get(i).getIngredient()).apply();
-                preferences.edit().putString(Constants.MEASURE + " " + i, ingredients.get(i).getMeasure()).apply();
-                preferences.edit().putFloat(Constants.QUANTITY + " " + i, ingredients.get(i).getQuantity()).apply();
-                Log.e("size", ingredients.get(i).getIngredient() + " **-** " + ingredients.get(i).getQuantity() + " **-** " + ingredients.get(i).getMeasure());
+    public void setIngredients(List<Ingredients> ingredients) {
 
-            }
-            preferences.edit().putInt(Constants.INGREDIENTS_SIZE, ingredients.size()).apply();
-            Log.e("size", ingredients.size() + " **-** ");
-
+        StringBuilder stringBuilder = new StringBuilder();
+        for (int i = 0; i < ingredients.size(); i++) {
+            stringBuilder.append("" + (i + 1) + ". " + ingredients.get(i).getIngredient() + " - " + ingredients.get(i).getQuantity()
+                    + " " + ingredients.get(i).getMeasure() + "\n");
         }
+        Log.e("test", stringBuilder.toString());
+        INGREDIENTS = stringBuilder.toString();
     }
 }
