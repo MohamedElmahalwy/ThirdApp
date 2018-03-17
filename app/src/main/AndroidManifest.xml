@@ -18,9 +18,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".Activties.DetailsActivity"
-            android:configChanges="orientation|screenSize|locale|keyboardHidden|screenLayout" />
+        <activity android:name=".Activties.DetailsActivity" />
         <activity android:name=".Activties.IngredientActivity" />
         <activity android:name=".Activties.StepsActivity"></activity>
 
