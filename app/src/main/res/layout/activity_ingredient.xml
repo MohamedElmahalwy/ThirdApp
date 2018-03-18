@@ -7,7 +7,7 @@
     android:orientation="vertical"
     tools:context="com.elmahalwy.bakingapp.Activties.IngredientActivity">
 
-    <include layout="@layout/toolbar_layout" />
+    <include layout="@layout/toolbar_steps_layout" />
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rv_ingredient"
