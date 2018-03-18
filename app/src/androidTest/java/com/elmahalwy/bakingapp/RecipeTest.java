@@ -4,8 +4,9 @@ import android.support.test.espresso.contrib.RecyclerViewActions;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
-import com.elmahalwy.thirdproject.Activties.DetailsActivity;
-import com.elmahalwy.thirdproject.Activties.MainActivity;
+import com.elmahalwy.bakingapp.Activties.DetailsActivity;
+import com.elmahalwy.bakingapp.Activties.MainActivity;
+
 
 import org.junit.Rule;
 import org.junit.Test;
